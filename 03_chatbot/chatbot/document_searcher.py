@@ -10,6 +10,7 @@ class DocumentSearcher:
         # .env 파일에서 환경 변수 로드
         load_dotenv()
         #openai api key
+        self.openAIclient = OpenAI() 
         self.api_key = os.getenv("OPENAI_API_KEY")
         self.openAIclient.api_key = self.api_key
         #elasticsearch password
@@ -17,7 +18,7 @@ class DocumentSearcher:
         
         self.client = Elasticsearch([{'host': 'localhost', 'port': 9200, 'scheme':'http'}], http_auth=('elastic', self.es_pw) )
         #self.embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
-        self.openAIclient = OpenAI()  
+ 
         
         
     # 텍스트 임베딩 함수
@@ -55,4 +56,5 @@ class DocumentSearcher:
                 }
             }
         )
+        print([f"#{i+1} {hit['_source']['text']}" for i, hit in enumerate(response['hits']['hits'])])
         return [f"#{i+1} {hit['_source']['text']}" for i, hit in enumerate(response['hits']['hits'])]

@@ -1,6 +1,6 @@
 import os
 
-from chatbot import ChatBot
+from chatbot.chatbot import ChatBot
 from flask import Flask, request, jsonify
 
 
@@ -9,6 +9,11 @@ class FlaskApp:
     def __init__(self, api_key):
         self.app = Flask(__name__)
         self.chatbot = ChatBot(api_key)
+        
+        @self.app.route('/')
+        def home():
+            return 'Hello, World!'
+        
 
         @self.app.route('/botresponse', methods=['POST'])
         def send_message():

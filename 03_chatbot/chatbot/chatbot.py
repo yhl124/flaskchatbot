@@ -1,10 +1,11 @@
 from .document_searcher import DocumentSearcher
 
+from langchain_ollama import ChatOllama
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 
 class ChatBot:
-    def __init__(self, endpoint, api_key):
+    def __init__(self, api_key):
         #self.history_manager = ChatHistoryManager(endpoint, api_key)
         self.document_searcher = DocumentSearcher(api_key)
         self.prompt = ChatPromptTemplate.from_messages(
@@ -22,19 +23,25 @@ class ChatBot:
         #         ('user', '{question}'),
         #     ]
         # )
-        self.llm = ChatOpenAI(model="gpt-3.5-turbo")
+        #self.llm = ChatOpenAI(model="gpt-3.5-turbo")
+        self.llm = ChatOllama(
+            model = "model:latest",
+            # temperature = 0.8,
+            # num_predict = 256,
+            # other params ...
+        )
         self.runnable = self.prompt | self.llm
 
-        self.with_message_history = RunnableWithMessageHistory(
-            self.runnable,
-            self.history_manager.get_chat_history,
-            input_messages_key='question',
-            history_messages_key='history',
-            history_factory_config=[
-                ConfigurableFieldSpec(id='chat_id', annotation=str),
-                ConfigurableFieldSpec(id='user_id', annotation=str)
-            ],
-        )
+        # self.with_message_history = RunnableWithMessageHistory(
+        #     self.runnable,
+        #     self.history_manager.get_chat_history,
+        #     input_messages_key='question',
+        #     history_messages_key='history',
+        #     history_factory_config=[
+        #         ConfigurableFieldSpec(id='chat_id', annotation=str),
+        #         ConfigurableFieldSpec(id='user_id', annotation=str)
+        #     ],
+        # )
 
     def run_chatbot(self, chat_id, user_id, question):
         context = self.document_searcher.search_similar_documents(question)
@@ -42,14 +49,17 @@ class ChatBot:
             "question": question,
             "context": context
         }
-        response = self.with_message_history.invoke(
-            inputs,
-            config={"configurable": {"chat_id": chat_id, "user_id": user_id}}
-        )
+        # response = self.with_message_history.invoke(
+        #     inputs,
+        #     config={"configurable": {"chat_id": chat_id, "user_id": user_id}}
+        # )
 
-        history = self.history_manager.get_chat_history(chat_id, user_id)
-        history.add_message(HumanMessage(content=question))
-        self.history_manager.save_chat_history(chat_id, user_id, history)
+        # history = self.history_manager.get_chat_history(chat_id, user_id)
+        # history.add_message(HumanMessage(content=question))
+        # self.history_manager.save_chat_history(chat_id, user_id, history)
+        
+
+        response = self.runnable.invoke(inputs)
 
         return response.content
 
